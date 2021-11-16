@@ -20,7 +20,7 @@ docker_users: [ admin, docker_admin ]
 ```
 
 Example Playbook
-----------------
+----------------------------------------
 
 ```yml
 - hosts: k8s-nodes
@@ -29,11 +29,11 @@ Example Playbook
 ```
 
 License
--------
+----------------------------------------
 
 MIT
 
 Author Information
-------------------
+----------------------------------------
 
 This role was created by [shnee](github.com/shnee).

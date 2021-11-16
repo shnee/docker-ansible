@@ -1,5 +1,0 @@
----
-- name: Call the docker role.
-  hosts: all
-  roles:
-    - {role: install_docker, docker_users: [admin]}
