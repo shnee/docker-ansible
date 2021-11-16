@@ -1,0 +1,103 @@
+---
+# This commented out code was an attempt to make sure the CentOS extras repo is
+# enabled.
+# TODO This isn't working. It will create the repo everytime regardless whether
+# or not the repo is already enabled. For now we leave it because this repo is
+# enabled by defaullt on CentOS 7 & 8
+#
+# https://docs.docker.com/engine/install/centos/#os-requirements
+# Look in /etc/yum.repos.d/ for examples of the fields for a repo. This files
+# have variables in their config. To get the values of the variables you can
+# run:
+# `python -c 'import yum; yb = yum.YumBase(); print(yb.conf.yumvar)'`
+# - name: Ensure CentOS extras repo is enbaled for CentOS 7.
+#   yum_repository:
+#     name: extras
+#     description: CentOS-{{ ansible_distribution_major_version }} - Extras
+#     enabled: true
+#     mirrorlist: "http://mirrorlist.centos.org/?\
+#                  release={{ ansible_distribution_major_version }}&\
+#                  arch={{ ansible_architecture }}&\
+#                  repo=extras&infra=genclo"
+#     gpgcheck: true
+#   become: true
+#   when: >
+#       ansible_distribution == "CentOS" and
+#       ansible_distribution_major_version == "7"
+# - name: Ensure CentOS extras repo is enbaled for CentOS 8.
+#   yum_repository:
+#     name: extras
+#     description: >
+#       CentOS Linux {{ ansible_distribution_major_version }} - Extras
+#     enabled: true
+#     mirrorlist: "http://mirrorlist.centos.org/?\
+#                  release={{ ansible_distribution_major_version }}&\
+#                  arch={{ ansible_architecture }}&\
+#                  repo=extras&infra=genclo"
+#     gpgcheck: true
+#   become: true
+#   when: >
+#       ansible_distribution == "CentOS" and
+#       ansible_distribution_major_version == "8"
+
+# TODO Add this step.
+# https://docs.docker.com/engine/install/centos/#os-requirements
+
+################################################################################
+# Uninstall unwanted docker packages.
+################################################################################
+
+# This step combines "Uninstall old versions" for RedHat family distros.
+# https://docs.docker.com/engine/install/centos/#uninstall-old-versions
+# https://docs.docker.com/engine/install/fedora/#uninstall-old-versions
+# https://docs.docker.com/engine/install/rhel/#uninstall-old-versions
+
+# We check if a docker repo has alredy been added to yum. If so, then we want to
+# skip the removing of the old docker packages to make this script more
+# idempotent.
+- name: Check if docker repo has alredy been added.
+  command: yum repolist  # noqa command-instead-of-module
+  changed_when: false
+  register: repolist
+
+- name: Uninstall old versions of docker RedHat like distros..
+  yum:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-selinux
+      - docker-engine-selinux
+      - docker-engine
+      - podman
+      - runc
+    state: absent
+  become: true
+  when: "'docker' not in repolist.stdout"
+
+################################################################################
+# Install dependencies
+################################################################################
+
+# https://docs.docker.com/engine/install/centos/#install-using-the-repository
+- name: Install dependencies for yum distros.
+  yum:
+    name:
+      - yum-utils
+    state: present
+  become: true
+
+################################################################################
+# Install docker repo.
+################################################################################
+
+# https://docs.docker.com/engine/install/centos/#install-using-the-repository
+- name: Add docker yum repo for centos.
+  command:
+    cmd: "yum-config-manager --add-repo {{ centos_repo_url }}"
+    creates: "{{ centos_repo_full_path }}"
+  become: true

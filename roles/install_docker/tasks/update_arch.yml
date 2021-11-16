@@ -1,0 +1,15 @@
+---
+# These tasks will update the pacman repos if Docker is not alredy instflled.
+#
+# We only want to update the chache if needed, otherwise this will break
+# idempotentcy.
+
+- name: Get a list of installed pacakges.
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Update pacman cache if docker is not installed.
+  pacman:
+    update_cache: true
+  become: true
+  when: "'docker' not in ansible_facts.packages"

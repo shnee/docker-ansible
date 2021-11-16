@@ -1,0 +1,57 @@
+---
+# This has only been tests on Amazon Linux 2, CentOS 7-8, Ubuntu 20.04, and
+# ArchLinux.
+
+# Prequisites
+# This step will:
+# 1. Remove any unwanted docker packages, (we want newest package from official
+#    docker repos.
+# 2. Install dependencies.
+# 3. Add official docker repo.
+
+# Archlinux and Amazon Linux don't have any prequisite steps, they're
+# repositories have up to date docker packages so we don't need to add a 3rd
+# party repo or uninstall unwanted packages.
+
+- include_tasks: prereq_centos.yml
+  when: ansible_distribution == "CentOS"
+
+- include_tasks: prereq_ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+
+# The arch cloud image does not have a package cache.
+- include_tasks: update_arch.yml
+  when: ansible_distribution == "Archlinux"
+
+- name: Install docker packages after adding 3rd party repo.
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+  become: true
+  when: ansible_distribution != "Amazon" and ansible_distribution != "Archlinux"
+- name: Install docker packages for distros that don't use a 3rd party repo.
+  package:
+    name:
+      - docker
+    state: present
+  become: true
+  when: ansible_distribution == "Amazon" or ansible_distribution == "Archlinux"
+
+- name: Add users to the docker group.
+  user:
+    name: "{{ item }}"
+    groups:
+      - docker
+    append: true
+  with_items: "{{ docker_users }}"
+  become: true
+
+- name: Enable and start docker service.
+  service:
+    name: docker
+    state: started
+    enabled: true
+  become: true

@@ -1,0 +1,25 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: shnee
+  description: Install docker.
+
+  license: MIT
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: ArchLinux
+      versions:
+        - all
+    - name: Amazon Linux 2
+      versions:
+        - all
+    - name: Ubuntu
+        - focal  # 20.04
+    # CentOS is apparently not in https://galaxy.ansible.com/api/v1/platforms/
+
+  galaxy_tags:
+    - containers
+    - docker

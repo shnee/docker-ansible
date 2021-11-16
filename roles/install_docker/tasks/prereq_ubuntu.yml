@@ -1,0 +1,50 @@
+---
+################################################################################
+# Uninstall unwanted docker packages.
+################################################################################
+
+# https://docs.docker.com/engine/install/ubuntu/#uninstall-old-versions
+- name: Remove old docker packages for Debian like distros.
+  apt:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+  become: true
+
+################################################################################
+# Install dependencies
+################################################################################
+
+# https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+- name: Install Docker dependencies on Debian like distro.
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+  become: true
+
+################################################################################
+# Install docker repo.
+################################################################################
+
+# https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+- name: Add GPG key to apt for Ubuntu.
+  apt_key:
+    url: "{{ ubuntu_gpg_url }}"
+    id: "{{ ubuntu_gpg_fingerprint }}"
+    state: present
+  become: true
+
+# https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+- name: Add Docker repository for Ubuntu.
+  apt_repository:
+    repo: "{{ ubuntu_apt_repo }}"
+    state: present
+    update_cache: true
+  become: true

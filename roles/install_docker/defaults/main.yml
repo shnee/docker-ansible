@@ -1,0 +1,17 @@
+---
+# A list of users to be added to the docker group.
+docker_users: []
+
+centos_repo_file: docker-ce.repo
+centos_repo_full_path: "/etc/yum.repos.d/{{ centos_repo_file }}"
+centos_repo_url: "https://download.docker.com/linux/centos/\
+                  {{ centos_repo_file }}"
+
+ubuntu_docker_base_url: https://download.docker.com/linux/ubuntu
+ubuntu_gpg_url: "{{ ubuntu_docker_base_url }}/gpg"
+ubuntu_gpg_fingerprint: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+ubuntu_apt_repo: >
+  deb [arch=amd64]
+  "{{ ubuntu_docker_base_url }}"
+  "{{ ansible_distribution_release }}"
+  stable
