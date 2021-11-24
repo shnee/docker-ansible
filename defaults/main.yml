@@ -2,16 +2,94 @@
 # A list of users to be added to the docker group.
 docker_users: []
 
-centos_repo_file: docker-ce.repo
-centos_repo_full_path: "/etc/yum.repos.d/{{ centos_repo_file }}"
-centos_repo_url: "https://download.docker.com/linux/centos/\
-                  {{ centos_repo_file }}"
+docker_base_url: "https://download.docker.com/linux"
+docker_distro_aliases:
+  CentOS: centos
+  # RedHat -> centos is intentional.
+  RedHat: centos
+  Ubuntu: ubuntu
+docker_distro_base_url: "{{ docker_base_url }}/\
+                         {{ docker_distro_aliases[ansible_distribution] }}"
 
-ubuntu_docker_base_url: https://download.docker.com/linux/ubuntu
-ubuntu_gpg_url: "{{ ubuntu_docker_base_url }}/gpg"
+################################################################################
+# RedHat family docker repo.
+################################################################################
+
+redhat_fam_docker_repo_file: docker-ce.repo
+redhat_fam_repo_url: "{{ docker_base_url }}/\
+                      {{ docker_distro_aliases[ansible_distribution] }}/\
+                      {{ redhat_fam_docker_repo_file }}"
+redhat_fam_docker_repo_full_path: "{{ redhat_fam_repo_base_path }}/\
+                                   {{ redhat_fam_docker_repo_file }}"
+
+################################################################################
+# RedHat family extras repo.
+#
+# The extras repo holds some packages that are dependencies of docker.
+################################################################################
+
+redhat_fam_repo_base_path: /etc/yum.repos.d
+
+# RedHat 8 doesn't seem to have an extras repo. Docker also installs fine i RHEL
+# 8 without making any changes to an extras repo.
+redhat_7_extras_repo_file: redhat.repo
+redhat_7_extras_group: rhel-7-server-extras-rpms
+centos_7_extras_repo_file: CentOS-Sources.repo
+centos_8_extras_repo_file: CentOS-Linux-Extras.repo
+centos_7_8_extras_group: extras
+
+redhat_fam_extras_repo_file:
+  CentOS:
+    "7":
+      repo: "{{ redhat_fam_repo_base_path }}/{{ centos_7_extras_repo_file }}"
+      group: "{{ centos_7_8_extras_group }}"
+    "8":
+      repo: "{{ redhat_fam_repo_base_path }}/{{ centos_8_extras_repo_file }}"
+      group: "{{ centos_7_8_extras_group }}"
+  RedHat:
+    "7":
+      repo: "{{ redhat_fam_repo_base_path }}/{{ redhat_7_extras_repo_file }}"
+      group: "{{ redhat_7_extras_group }}"
+
+
+################################################################################
+# Ubuntu 3rd party repo.
+################################################################################
+
+ubuntu_gpg_url: "{{ docker_distro_base_url }}/gpg"
 ubuntu_gpg_fingerprint: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
 ubuntu_apt_repo: >
   deb [arch=amd64]
-  "{{ ubuntu_docker_base_url }}"
+  "{{ docker_distro_base_url }}"
   "{{ ansible_distribution_release }}"
   stable
+
+################################################################################
+# Thes are the packages that are removed before adding the 3rd party repo.
+################################################################################
+
+centos_remove_old_packages:
+  - docker
+  - docker-client
+  - docker-client-latest
+  - docker-common
+  - docker-latest
+  - docker-latest-logrotate
+  - docker-logrotate
+  - docker-engine
+
+ubuntu_remove_old_packages:
+  - docker
+  - docker-engine
+  - docker.io
+  - containerd
+  - runc
+
+# A map of ansible_distribution -> old packages to remove.
+#
+# We use centos for RedHat because Docker doesn't officially support RHEL for
+# x86_64, however the centos repo works.
+docker_remove_old_packages:
+  CentOS: "{{centos_remove_old_packages}}"
+  RedHat: "{{centos_remove_old_packages}}"
+  Ubuntu: "{{ubuntu_remove_old_packages}}"

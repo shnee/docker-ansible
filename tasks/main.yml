@@ -2,27 +2,38 @@
 # This has only been tests on Amazon Linux 2, CentOS 7-8, Ubuntu 20.04, and
 # ArchLinux.
 
+################################################################################
 # Prequisites
 # This step will:
 # 1. Remove any unwanted docker packages, (we want newest package from official
 #    docker repos.
 # 2. Install dependencies.
 # 3. Add official docker repo.
+################################################################################
 
 # Archlinux and Amazon Linux don't have any prequisite steps, they're
 # repositories have up to date docker packages so we don't need to add a 3rd
 # party repo or uninstall unwanted packages.
 
-- include_tasks: prereq_centos.yml
-  when: ansible_distribution == "CentOS"
+- include_tasks: prereq_redhat_family.yml
+  # We need to exclude Amazon because it's technically in the "RedHat" family
+  # but it does not require these prereq steps.
+  when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
 
 - include_tasks: prereq_ubuntu.yml
   when: ansible_distribution == "Ubuntu"
 
-# The arch cloud image does not have a package cache.
+################################################################################
+# End prerequisite steps
+################################################################################
+
+# The arch cloud image does not have a package cache, this file will update the
+# cache only if we need to install the docker package (not already installed).
 - include_tasks: update_arch.yml
   when: ansible_distribution == "Archlinux"
 
+# Install the docker packages. The packages and their names depends on the
+# distro,
 - name: Install docker packages after adding 3rd party repo.
   package:
     name:

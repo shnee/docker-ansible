@@ -1,5 +1,5 @@
 ---
-# These tasks will update the pacman repos if Docker is not alredy instflled.
+# These tasks will update the pacman repos if Docker is not already installed.
 #
 # We only want to update the chache if needed, otherwise this will break
 # idempotentcy.

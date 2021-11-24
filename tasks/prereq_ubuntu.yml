@@ -6,12 +6,7 @@
 # https://docs.docker.com/engine/install/ubuntu/#uninstall-old-versions
 - name: Remove old docker packages for Debian like distros.
   apt:
-    name:
-      - docker
-      - docker-engine
-      - docker.io
-      - containerd
-      - runc
+    name: "{{ docker_remove_old_packages[ansible_distribution] }}"
     state: absent
   become: true
 

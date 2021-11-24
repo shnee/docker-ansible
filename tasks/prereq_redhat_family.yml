@@ -1,0 +1,63 @@
+---
+# https://docs.docker.com/engine/install/centos/#os-requirements
+- name: Enable the extras repo in RedHat family distros.
+  ini_file:
+    path: "{{ redhat_fam_extras_repo_file[ansible_distribution]\
+              [ansible_distribution_major_version].repo }}"
+    section: "{{ redhat_fam_extras_repo_file[ansible_distribution]\
+                 [ansible_distribution_major_version].group }}"
+    option: enabled
+    value: 1
+    mode: '0644'
+    exclusive: true
+    state: present
+    backup: true
+  become: true
+  when: >
+    ansible_distribution == "CentOS" or
+    ( ansible_distribution == "RedHat" and
+      ansible_distribution_major_version == "7" )
+
+################################################################################
+# Uninstall unwanted docker packages.
+################################################################################
+
+# https://docs.docker.com/engine/install/centos/#uninstall-old-versions
+#
+# We check if a docker repo has alredy been added to yum. If so, then we want to
+# skip the removing of the old docker packages to make this script more
+# idempotent.
+- name: Check if docker repo has already been added.
+  command: yum repolist  # noqa command-instead-of-module
+  changed_when: false
+  register: repolist
+
+- name: Uninstall old versions of docker RedHat like distros.
+  yum:
+    name: "{{ docker_remove_old_packages[ansible_distribution] }}"
+    state: absent
+  become: true
+  when: "'docker' not in repolist.stdout"
+
+################################################################################
+# Install dependencies
+################################################################################
+
+# https://docs.docker.com/engine/install/centos/#install-using-the-repository
+- name: Install dependencies for yum distros.
+  yum:
+    name:
+      - yum-utils
+    state: present
+  become: true
+
+################################################################################
+# Install docker repo.
+################################################################################
+
+# https://docs.docker.com/engine/install/centos/#install-using-the-repository
+- name: Add docker yum repo for centos.
+  command:
+    cmd: "yum-config-manager --add-repo {{ redhat_fam_repo_url }}"
+    creates: "{{ redhat_fam_docker_repo_full_path }}"
+  become: true

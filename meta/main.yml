@@ -16,9 +16,11 @@ galaxy_info:
     - name: Amazon Linux 2
       versions:
         - all
+    - name: EL
+        - 7
+        - 8
     - name: Ubuntu
         - focal  # 20.04
-    # CentOS is apparently not in https://galaxy.ansible.com/api/v1/platforms/
 
   galaxy_tags:
     - containers
